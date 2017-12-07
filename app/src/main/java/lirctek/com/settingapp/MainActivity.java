@@ -3,6 +3,8 @@ package lirctek.com.settingapp;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -17,6 +19,11 @@ import android.widget.Toast;
 
 import java.util.List;
 
+import lirctek.com.settingapp.Signature.SignatureFragment;
+import lirctek.com.settingapp.carrier.CarrierFragment;
+import lirctek.com.settingapp.db.ServerSQLiteDBHelper;
+import lirctek.com.settingapp.driver.DriverFragment;
+import lirctek.com.settingapp.model.LocalDataModel;
 import lirctek.com.settingapp.model.ServerDataModel;
 import lirctek.com.settingapp.model.User;
 import lirctek.com.settingapp.network.AppLib;
@@ -26,6 +33,11 @@ import lirctek.com.settingapp.network.UiCallBack;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, UiCallBack<List<ServerDataModel>> {
 
+    private PagerAdapter mAdapter;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
+    private LocalDataModel localDataModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -33,14 +45,10 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        tabLayout = (TabLayout) findViewById(R.id.sliding_tabs);
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+
+
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -62,6 +70,17 @@ public class MainActivity extends AppCompatActivity
         AppLib.getAppLib(this).getNetworkClient().gettingData(u,this);
 
     }
+
+    private void setupViewPager() {
+        mAdapter = new PagerAdapter(getSupportFragmentManager());
+        mAdapter.addFragment(DriverFragment.newInstance(localDataModel.id,localDataModel.firstName,localDataModel.lastName,localDataModel.phone,localDataModel.email,localDataModel.truck+"", localDataModel.trailerNumber), getString(R.string.driver));
+        mAdapter.addFragment(CarrierFragment.newInstance(localDataModel.id,localDataModel.firstName,localDataModel.lastName,localDataModel.phone,localDataModel.email,localDataModel.truck+"", localDataModel.trailerNumber), getString(R.string.carrier));
+        mAdapter.addFragment(SignatureFragment.newInstance("",""), getString(R.string.signature));
+        viewPager.setOffscreenPageLimit(1);
+        viewPager.setAdapter(mAdapter);
+        tabLayout.setupWithViewPager(viewPager);
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -123,6 +142,13 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onSuccess(List<ServerDataModel> serverDataModel) {
         Log.i("sdc","0");
+        ServerSQLiteDBHelper dbHelper = new ServerSQLiteDBHelper();
+        long s = dbHelper.insertDB(serverDataModel.get(0));
+        //localDataModel = dbHelper.getAllData().get(0);
+
+        localDataModel = dbHelper.getLocalData(serverDataModel.get(0));
+        setupViewPager();
+
     }
 
     @Override

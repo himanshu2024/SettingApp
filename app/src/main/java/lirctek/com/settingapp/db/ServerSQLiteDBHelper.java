@@ -43,7 +43,7 @@ public class ServerSQLiteDBHelper {
 
     }
 
-    private LocalDataModel getLocalData(ServerDataModel dataModel)
+    public LocalDataModel getLocalData(ServerDataModel dataModel)
     {
         LocalDataModel localDataModel = new LocalDataModel();
         localDataModel.address=dataModel.getAddress();
