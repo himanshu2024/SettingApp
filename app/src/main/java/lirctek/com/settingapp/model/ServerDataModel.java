@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName;
  * Created by Priya on 07-12-2017.
  */
 
+
 public class ServerDataModel {
 
     @SerializedName("Id")
